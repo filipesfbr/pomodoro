@@ -1,6 +1,5 @@
 {
   "name": "pomodoro",
-  "private": true,
   "version": "1.2.0",
   "type": "commonjs",
   "main": "dist-electron/main.js",

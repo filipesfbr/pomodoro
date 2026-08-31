@@ -1,7 +1,7 @@
 {
   "name": "pomodoro",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "commonjs",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -24,7 +24,10 @@
       "dist/**/*",
       "!node_modules/**/*"
     ],
-    "electronLanguages": ["en-US", "pt-BR"],
+    "electronLanguages": [
+      "en-US",
+      "pt-BR"
+    ],
     "win": {
       "target": "nsis",
       "icon": "public/tomato.png"

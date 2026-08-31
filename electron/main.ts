@@ -1,6 +1,9 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'path'
 
+// Required on Windows so toast notifications show "Pomodoro" instead of a generic Electron name/icon.
+app.setAppUserModelId('com.pomodoro.app')
+
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 

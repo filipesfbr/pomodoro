@@ -21,8 +21,10 @@
     "compression": "maximum",
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "!node_modules/**/*"
     ],
+    "electronLanguages": ["en-US", "pt-BR"],
     "win": {
       "target": "nsis",
       "icon": "public/tomato.png"
@@ -33,7 +35,6 @@
     }
   },
   "dependencies": {
-    "date-fns": "^4.1.0",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

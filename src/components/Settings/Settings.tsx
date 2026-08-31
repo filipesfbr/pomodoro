@@ -6,13 +6,11 @@ interface SettingsProps {
   toggleTheme: () => void;
   durations: {
     focus: number;
-    shortBreak: number;
-    longBreak: number;
+    break: number;
   };
   setDurations: React.Dispatch<React.SetStateAction<{
     focus: number;
-    shortBreak: number;
-    longBreak: number;
+    break: number;
   }>>;
 }
 
@@ -74,30 +72,15 @@ export const Settings: React.FC<SettingsProps> = ({ theme, toggleTheme, duration
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="font-medium text-primary">Short Break</span>
-              <span className="text-muted">{durations.shortBreak} min</span>
+              <span className="font-medium text-primary">Break</span>
+              <span className="text-muted">{durations.break} min</span>
             </div>
-            <input 
-              type="range" 
-              min="1" 
-              max="30" 
-              value={durations.shortBreak}
-              onChange={(e) => handleDurationChange('shortBreak', parseInt(e.target.value))}
-              className="w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-primary">Long Break</span>
-              <span className="text-muted">{durations.longBreak} min</span>
-            </div>
-            <input 
-              type="range" 
-              min="1" 
-              max="60" 
-              value={durations.longBreak}
-              onChange={(e) => handleDurationChange('longBreak', parseInt(e.target.value))}
+            <input
+              type="range"
+              min="1"
+              max="30"
+              value={durations.break}
+              onChange={(e) => handleDurationChange('break', parseInt(e.target.value))}
               className="w-full"
             />
           </div>

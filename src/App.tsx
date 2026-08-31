@@ -14,8 +14,7 @@ function App() {
   // Timer Durations State (in minutes)
   const [timerDurations, setTimerDurations] = useState({
     focus: 25,
-    shortBreak: 5,
-    longBreak: 15
+    break: 5
   });
 
   useEffect(() => {

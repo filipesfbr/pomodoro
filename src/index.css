@@ -586,6 +586,35 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
+/* Break mode: rest orb replaces the tomato */
+.rest-orb {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #6ee7b7, #10b981);
+  box-shadow:
+    inset -10px -10px 20px rgba(0, 0, 0, 0.15),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.25),
+    0 20px 40px rgba(16, 185, 129, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.rest-orb.breathing {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.rest-icon {
+  color: white;
+  opacity: 0.85;
+}
+
 /* Controls */
 .pomodoro-controls {
   display: flex;
@@ -624,19 +653,27 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Settings Input */
 .timer-settings-input {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0;
   color: white;
-  font-size: 3rem;
+  font-size: 4rem;
   font-weight: 800;
-  width: 160px;
+  font-variant-numeric: tabular-nums;
+  width: 140px;
   text-align: center;
   outline: none;
+  -moz-appearance: textfield;
+}
+
+.timer-settings-input::-webkit-outer-spin-button,
+.timer-settings-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .timer-settings-input:focus {
-  background: rgba(255, 255, 255, 0.3);
   border-color: white;
 }
 

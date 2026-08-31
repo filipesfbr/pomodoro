@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
+import { Play, Pause, RotateCcw, Timer, Coffee } from 'lucide-react';
 
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+type TimerMode = 'focus' | 'break';
 
 const MODES: Record<TimerMode, { label: string; minutes: number; color: string }> = {
   focus: { label: 'Focus', minutes: 25, color: '#ee5253' },
-  shortBreak: { label: 'Short Break', minutes: 5, color: '#2ecc71' },
-  longBreak: { label: 'Long Break', minutes: 15, color: '#3498db' },
+  break: { label: 'Break', minutes: 5, color: '#2ecc71' },
 };
 
 interface PomodoroTimerProps {
   durations: {
     focus: number;
-    shortBreak: number;
-    longBreak: number;
+    break: number;
   };
 }
 
@@ -22,31 +20,42 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
   const [timeLeft, setTimeLeft] = useState(durations.focus * 60);
   const [isActive, setIsActive] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
   // We use local state for the countdown, but initialize/reset from props
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Update time when durations change if not active
-  useEffect(() => {
-    if (!isActive) {
-      setTimeLeft(durations[mode] * 60);
-    }
-  }, [durations, mode, isActive]);
+  // Reset time when mode or its duration changes, but not on pause.
+  // Adjusted during render (React's recommended pattern) instead of an effect,
+  // so pausing (isActive changing) never re-triggers this.
+  const syncedDuration = durations[mode];
+  const [prevSynced, setPrevSynced] = useState({ mode, syncedDuration });
+  if (!isActive && (prevSynced.mode !== mode || prevSynced.syncedDuration !== syncedDuration)) {
+    setPrevSynced({ mode, syncedDuration });
+    setTimeLeft(syncedDuration * 60);
+  }
 
   useEffect(() => {
-    if (isActive && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      setIsActive(false);
-      if (timerRef.current) clearInterval(timerRef.current);
-      new Notification("Timer Finished", { body: `${MODES[mode].label} session complete!` });
-    }
+    if (!isActive) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          setIsActive(false);
+          new Notification(`Pomodoro — ${MODES[mode].label} finished`, {
+            body: mode === 'break' ? 'Break is over. Ready for another focus session?' : 'Nice work! Time for a break.',
+            icon: './tomato.png',
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, timeLeft, mode]);
+  }, [isActive, mode]);
 
   const toggleTimer = () => setIsActive(!isActive);
 
@@ -61,15 +70,17 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
     setTimeLeft(durations[newMode] * 60);
   };
 
-  const handleTimeEdit = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // This local edit is temporary for the current session
-    // Ideally, we might want to update the global settings, but for now let's keep it local override
-    // Or we can disable local edit since we have global settings now.
-    // Let's keep local edit as an override.
-    const val = parseInt(e.target.value);
+  const startEditing = () => {
+    setEditValue(String(Math.ceil(timeLeft / 60)));
+    setIsEditing(true);
+  };
+
+  const commitEdit = () => {
+    const val = parseInt(editValue);
     if (!isNaN(val) && val > 0 && val <= 120) {
       setTimeLeft(val * 60);
     }
+    setIsEditing(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -77,6 +88,27 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const timeDisplay = isEditing ? (
+    <input
+      type="number"
+      value={editValue}
+      onChange={(e) => setEditValue(e.target.value)}
+      onFocus={(e) => e.target.select()}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+      onBlur={commitEdit}
+      autoFocus
+      className="timer-settings-input"
+    />
+  ) : (
+    <div
+      className="tomato-timer-display"
+      onClick={() => !isActive && startEditing()}
+      title="Click to edit time"
+    >
+      {formatTime(timeLeft)}
+    </div>
+  );
 
   return (
     <div className="glass-panel p-6 flex flex-col items-center justify-center h-full relative overflow-hidden fade-in">
@@ -94,28 +126,18 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
       </div>
 
       <div className="tomato-container">
-        <div className={`tomato ${isActive ? 'breathing' : ''}`}>
-          <div className="tomato-leaves" />
-          <div className="tomato-stem" />
-          {isEditing ? (
-            <input
-              type="number"
-              value={Math.ceil(timeLeft / 60)}
-              onChange={handleTimeEdit}
-              onBlur={() => setIsEditing(false)}
-              autoFocus
-              className="timer-settings-input"
-            />
-          ) : (
-            <div 
-              className="tomato-timer-display"
-              onClick={() => !isActive && setIsEditing(true)}
-              title="Click to edit time"
-            >
-              {formatTime(timeLeft)}
-            </div>
-          )}
-        </div>
+        {mode === 'break' ? (
+          <div className={`rest-orb ${isActive ? 'breathing' : ''}`}>
+            <Coffee className="rest-icon" size={36} />
+            {timeDisplay}
+          </div>
+        ) : (
+          <div className={`tomato ${isActive ? 'breathing' : ''}`}>
+            <div className="tomato-leaves" />
+            <div className="tomato-stem" />
+            {timeDisplay}
+          </div>
+        )}
       </div>
 
       {/* Quick Time Adjustment Slider */}
@@ -159,7 +181,11 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
       
       <div className="mt-8 text-sm text-muted flex items-center gap-2">
         <Timer size={14} />
-        <span>{isActive ? 'Focusing...' : 'Ready to focus?'}</span>
+        <span>
+          {mode === 'break'
+            ? (isActive ? 'Resting...' : 'Time for a break')
+            : (isActive ? 'Focusing...' : 'Ready to focus?')}
+        </span>
       </div>
     </div>
   );

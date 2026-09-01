@@ -39,23 +39,28 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ durations }) => {
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          setIsActive(false);
-          new Notification(`Pomodoro — ${MODES[mode].label} finished`, {
-            body: mode === 'break' ? 'Break is over. Ready for another focus session?' : 'Nice work! Time for a break.',
-            icon: './tomato.png',
-          });
-          return 0;
-        }
-        return prev - 1;
+        if (prev > 1) return prev - 1;
+
+        // Phase finished -> switch to the next one and auto-start it.
+        if (timerRef.current) clearInterval(timerRef.current);
+        const next = mode === 'focus' ? 'break' : 'focus';
+        new Notification(`Pomodoro — ${MODES[mode].label} finished`, {
+          body: mode === 'break'
+            ? 'Break is over. Ready for another focus session?'
+            : 'Nice work! Time for a break.',
+          icon: './tomato.png',
+        });
+        setMode(next);
+        setTimeLeft(durations[next] * 60);
+        setIsActive(true);
+        return 0;
       });
     }, 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, mode]);
+  }, [isActive, mode, durations]);
 
   const toggleTimer = () => setIsActive(!isActive);
 

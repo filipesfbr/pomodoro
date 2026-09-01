@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import { autoUpdater } from 'electron-updater'
 
 // Required on Windows so toast notifications show "Pomodoro" instead of a generic Electron name/icon.
 app.setAppUserModelId('com.pomodoro.app')
@@ -45,6 +46,36 @@ function createWindow() {
   }
 }
 
+// Auto-update (production only): shortly after launch, checks the GitHub release
+// feed, downloads any newer version in the background, and lets the user install
+// it via the "restart now" button shown in the renderer.
+function setupAutoUpdater() {
+  if (!app.isPackaged) return
+
+  autoUpdater.autoDownload = true
+
+  autoUpdater.on('update-available', (info) => {
+    win?.webContents.send('update-available', info.version)
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    win?.webContents.send('update-downloaded', info.version)
+  })
+
+  autoUpdater.on('error', (err: Error) => {
+    win?.webContents.send('update-error', err.message)
+  })
+
+  ipcMain.on('app:restart-to-install', () => {
+    autoUpdater.quitAndInstall()
+  })
+
+  // Don't block startup; check a moment after the window is shown.
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {})
+  }, 3000)
+}
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -57,4 +88,7 @@ app.on('activate', () => {
   }
 })
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+  setupAutoUpdater()
+})

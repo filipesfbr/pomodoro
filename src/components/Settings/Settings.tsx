@@ -1,5 +1,6 @@
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { version as appVersion } from '../../../package.json';
 
 interface SettingsProps {
   theme: 'dark' | 'light';
@@ -88,7 +89,7 @@ export const Settings: React.FC<SettingsProps> = ({ theme, toggleTheme, duration
       </div>
 
       <div className="mt-8 text-center text-sm text-muted">
-        <p>Pomodoro v1.0.0</p>
+        <p>Pomodoro v{appVersion}</p>
         <p>Built with Electron & React</p>
       </div>
     </div>

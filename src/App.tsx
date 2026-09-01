@@ -11,10 +11,21 @@ function App() {
     return (localStorage.getItem('hub-theme') as 'dark' | 'light') || 'dark';
   });
 
-  // Timer Durations State (in minutes)
-  const [timerDurations, setTimerDurations] = useState({
-    focus: 25,
-    break: 5
+  // Timer Durations State (in minutes), persisted in localStorage.
+  const [timerDurations, setTimerDurations] = useState(() => {
+    const saved = localStorage.getItem('hub-durations');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved) as { focus?: number; break?: number };
+        return {
+          focus: typeof p.focus === 'number' && p.focus > 0 ? p.focus : 25,
+          break: typeof p.break === 'number' && p.break > 0 ? p.break : 5,
+        };
+      } catch {
+        /* fall through to defaults */
+      }
+    }
+    return { focus: 25, break: 5 };
   });
 
   // Auto-update status pushed from the main process.
@@ -27,6 +38,11 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('hub-theme', theme);
   }, [theme]);
+
+  // Persist timer durations whenever they change.
+  useEffect(() => {
+    localStorage.setItem('hub-durations', JSON.stringify(timerDurations));
+  }, [timerDurations]);
 
   // Subscribe to auto-update events sent by the main process (packaged builds).
   useEffect(() => {
